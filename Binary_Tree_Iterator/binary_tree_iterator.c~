@@ -1,0 +1,226 @@
+/*
+ * binary_tree_iterator.h
+ *
+ * This file provides the function implementations for a binary tree interator.
+ *
+ * @since 2017-02-15
+ * @author philip gust
+ */
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include "binary_tree_iterator.h"
+#include "binary_tree.h"
+
+/**
+ * Value returned by getBinaryTreeIteratorAvailable if count unavailable
+ */
+const int UNAVAILABLE;
+
+/**
+ * Create and initialize binary tree iterator.
+ *
+ * @param theTree the binary tree that iterator wants to iterate in
+ * @return itr the created iterator
+ */
+BinaryTreeIterator* createBinaryTreeIterator(BinaryTreeNode* theTree) {
+	BinaryTreeIterator*itr = (BinaryTreeIterator*)malloc(sizeof(BinaryTreeIterator));
+
+	itr->curNode = theTree;
+	itr->theTree = theTree;
+	itr->count = 0;
+	itr->size = 0;
+	itr->prevLink = parentLink;
+
+	return itr;
+}
+
+/**
+ * Copy binary tree iterator.
+ *
+ * @param theTree the binary tree that iterator wants to iterate in
+ * @return the copy of itr.
+ */
+BinaryTreeIterator* copyBinaryTreeIterator(BinaryTreeNode* theTree) {
+	if(theTree == (BinaryTreeNode*)NULL){
+		return (BinaryTreeIterator*)NULL;
+		}
+	BinaryTreeIterator* newIterator = createBinaryTreeIterator(theTree);
+
+	return newIterator;
+}
+
+/**
+ * Freeing iterator storage.
+ *
+ * @param itr the binaryTreeIterator to delete
+ */
+void freeBinaryTreeIterator(BinaryTreeIterator* itr) {
+	itr->count = UNAVAILABLE;
+	itr->size = 0;
+	itr->curNode = (BinaryTreeNode*)NULL;
+	itr->theTree = (BinaryTreeNode*)NULL;
+	itr->prevLink = (BinaryTreeNodeLink)NULL;
+	free(itr);
+	}
+
+/**
+ * Gets next binary tree node in the binary tree
+ *
+ * @param itr the BinaryTreeIterator
+ * @return the next node or NULL if iterator is at end of tree
+ */
+BinaryTreeNode* getNextBinaryTreeNode(BinaryTreeIterator* itr) {
+	BinaryTreeNode* node;
+	bool flag = false;
+	itr->size = binaryTreeSize2(itr->theTree);
+
+	if(itr->curNode == (BinaryTreeNode*)NULL){
+		return (BinaryTreeNode*)NULL;
+	}
+
+	while (itr->curNode != (BinaryTreeNode*)NULL) {
+
+		// conditions for returned node
+		if(flag == true){
+			// condition when iterator is at end of tree
+			if(itr->count == itr->size){
+				itr->prevLink = parentLink;
+				itr->curNode = (BinaryTreeNode*)NULL;
+			}
+
+			// return next node
+			return node;
+		}
+
+		flag = false;
+		node = itr->curNode;
+
+		if (itr->prevLink == parentLink) {  // coming from parent
+			if (node->linkTo[leftLink] != (BinaryTreeNode*)NULL) {
+				itr->curNode = node->linkTo[leftLink];
+				itr->prevLink = parentLink;
+			} else if (node->linkTo[rightLink] != (BinaryTreeNode*)NULL) {
+				itr->curNode = node->linkTo[rightLink];
+				itr->prevLink = parentLink;
+				// here the node needs to be returned
+				flag = true;
+				(itr->count)++;
+
+			} else {
+				itr->curNode = node->linkTo[parentLink];
+				itr->prevLink = linkOfBinaryTreeNodeChild(node);
+				// here the node needs to be returned
+				flag = true;
+				(itr->count)++;
+			}
+
+		} else if (itr->prevLink == leftLink) { // coming from left child
+			if (node->linkTo[rightLink] != (BinaryTreeNode*)NULL) {
+				itr->curNode = node->linkTo[rightLink];
+				itr->prevLink = parentLink;
+				// here the node needs to be returned
+				flag = true;
+				(itr->count)++;
+			} else {
+				itr->curNode = node->linkTo[parentLink];
+				itr->prevLink = linkOfBinaryTreeNodeChild(node);
+			}
+
+		} else {  // prvLink == rightLink coming from right child
+			itr->curNode = node->linkTo[parentLink];
+			itr->prevLink = linkOfBinaryTreeNodeChild(node);
+		}
+
+	}
+	return node;
+}
+
+/**
+ * Determines whether there is another node in the binary tree.
+ *
+ * @param itr the BinaryTreeIterator
+ * @return true if there is another node, false otherwise
+ */
+bool hasNextBinaryTreeNode(BinaryTreeIterator* itr) {
+	return itr->curNode != (BinaryTreeNode*)NULL;
+}
+
+/**
+ * Gets previous node in the binary tree.
+ *
+ * @param itr the BinaryTreeIterator
+ * @return the previous node or NULL if iterator is at end of list
+ */
+BinaryTreeNode* getPrevBinaryTreeNode(BinaryTreeIterator* itr) {
+	BinaryTreeNode* node;
+	BinaryTreeIterator* copyItrFor = copyBinaryTreeIterator(itr->theTree);
+	BinaryTreeIterator* copyItrIf = copyBinaryTreeIterator(itr->theTree);
+
+	for (node = itr->theTree;
+		 node != (BinaryTreeNode*)NULL;
+		 node = getNextBinaryTreeNode(copyItrFor)) {
+		if (getNextBinaryTreeNode(copyItrIf) == itr->curNode && itr->count != 0) {
+			itr->count--;
+			// point to and return previous node
+			itr->curNode = node;
+			return node;
+			}
+		}
+	return (BinaryTreeNode*)NULL;
+}
+
+/**
+ * Determines whether there is a previous node in the binary tree.
+ *
+ * @param itr the BinaryTreeIterator
+ * @return true if there is a previous node, false otherwise
+ */
+bool hasPrevBinaryTreeNode(BinaryTreeIterator* itr) {
+	BinaryTreeIterator* copyItrFor = copyBinaryTreeIterator(itr->theTree);
+	BinaryTreeIterator* copyItrIf = copyBinaryTreeIterator(itr->theTree);
+	for (BinaryTreeNode* node = itr->theTree;
+		 node != (BinaryTreeNode*)NULL;
+		 node = getNextBinaryTreeNode(copyItrFor)) {
+		if (getNextBinaryTreeNode(copyItrIf) == itr->curNode && itr->count != 0) {
+			return true;
+			}
+		}
+	return false;
+}
+
+/**
+ * Resets the binary tree iterator to the root of the tree.
+ *
+ * @param itr the BinaryTreeIterator
+ * @return true if successful, false if not supported
+ */
+bool resetBinaryTreeIterator(BinaryTreeIterator* itr) {
+	itr->curNode = itr->theTree;
+	itr->count = 0;
+	itr->prevLink = parentLink;
+	itr->size = 0;
+	return true;
+}
+
+/**
+ * Returns the number of nodes returned so far.
+ *
+ * @param itr the BinaryTreeIterator
+ */
+int getBinaryTreeIteratorCount(BinaryTreeIterator* itr) {
+	return itr->count;
+}
+
+
+/**
+ * Returns the number of nodes available.
+ *
+ * @param itr the BinaryTreeIterator
+ * @return available number of node or UNAVAILABLE if cannot perform operation.
+ */
+int getBinaryTreeIteratorAvailable(BinaryTreeIterator* itr) {
+	itr->size = binaryTreeSize2(itr->theTree);
+
+	return itr->size - itr->count;
+}
