@@ -1,0 +1,11 @@
+Merge sort is often preferred for sorting a linked list. The slow random-access performance of a linked list makes some other algorithms (such as quicksort) perform poorly, and others (such as heapsort) completely impossible. In fact, Merge Sort was the preferred technique for sorting large data sets in the era of mainframes with limited storage, using multiple tape drives to sort datasets that were far too large for main memory or other secondary storage.
+
+There are two ways to implement Merge Sort for linked lists. One is called the "top-down" method, which splits a link list and uses recursion to sort the sub-lists, then merge the sorted sub-lists. The other is known as the "bottom-up" technique, which uses iteration and a fixed amount of temporary storage to sort pairs, and then merge them into increasingly larger sorted sub-lists.
+
+The two techniques are discussed and presented as pseudo-code in the Wikipedia Merge sort article.
+
+The goal of this programming assignment is for you to become familiar with both the top-down and the bottom-up Merge Sort algorithms for sorting linked lists by studying their pseudo-code and implementing them using the existing singly-linked list code that we studied earlier. Learning to understand and interpret algorithms through pseudo-code is an essential skill for you to learn (as is presenting algorithms in pseudo-code).
+
+As you saw with the the iterative version of the binary tree walker we studied in class, and the iterative version of the graph path algorithm in programming assignment 7, iterative algorithms can be more complicated to implement and harder to understand than recursive ones. Therefore, a part of this assignment is to sufficiently comment your code so that a competent programmer who is unfamiliar with the the algorithm can easily understand your implementation.
+
+The code that you will use as a starting point is in the "2017SPCS5002SV/prog-assignment-8-template" repository, including a "mergesort_linked_list.h" header file and a "mergesort_linked_list.c" file with stub implementations for the top-down and bottom up functions and several supporting function. The repository also contains a "mergesort_linked_list_main.c" file with unit tests for the functions.
