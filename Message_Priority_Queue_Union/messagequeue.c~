@@ -6,7 +6,7 @@
  * The MessageQueue can grow to accommodate any number of messages.
  *
  * @since Feb 1, 2017
- * 
+ * @author phil
  */
 #include <stdlib.h>
 #include <assert.h>

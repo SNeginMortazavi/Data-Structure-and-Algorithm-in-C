@@ -4,7 +4,7 @@
  * The functions in this file implement a Message with optional message string.
  *
  * @since Feb 1, 2017
- * 
+ * @author phil
  */
 #include <stdlib.h>
 #include <strings.h>
