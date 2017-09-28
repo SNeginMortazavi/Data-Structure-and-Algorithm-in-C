@@ -1,0 +1,111 @@
+/*
+ * tree_map_iterator.c
+ *
+ * This file provides the implementations of a TreeMapIterator that
+ * iterates over the MapNodes of a TreeMap.
+ *
+ * @since 2017-03-15
+
+ */
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include "tree_map.h"
+#include "tree_map_iterator.h"
+
+
+/**
+ * Create and initialize a new TreeMapIterator
+ *
+ * @param map the map
+ * @return an iterator for the specified tree map
+ */
+TreeMapIterator* createTreeMapIterator(TreeMap* map) {
+	TreeMapIterator* itr = (TreeMapIterator*)malloc(sizeof(TreeMapIterator));
+	itr->treeItr = createBinaryTreeIterator(map->searchTree);
+	return itr;
+}
+
+/**
+ * Freeing iterator storage.
+ *
+ * @param itr the TreeMapIterator to delete
+ */
+void freeTreeMapIterator(TreeMapIterator* itr) {
+	freeBinaryTreeIterator(itr->treeItr);
+	itr->treeItr = (BinaryTreeIterator*)NULL;
+	free(itr);
+}
+
+/**
+ * Gets next link entry in the map
+ *
+ * @param itr the TreeMapIterator
+ * @return the next entry or NULL if iterator is at end the map
+ */
+MapEntry* getNextTreeMapEntry(TreeMapIterator* itr) {
+	BinaryTreeNode* node = getNextBinaryTreeNode(itr->treeItr);
+	return (node == (BinaryTreeNode*)NULL) ? (MapEntry*)NULL : &node->data->entry;
+}
+
+/**
+ * Determines whether there is another entry in the map
+ *
+ * @param itr the TreeMapIterator
+ * @return true if there is another entry, false otherwise
+ */
+bool hasNextTreeMapEntry(TreeMapIterator* itr) {
+	return hasNextBinaryTreeNode(itr->treeItr);
+}
+
+/**
+ * Gets previous entru in the tree map
+ *
+ * @param itr the TreeMapIterator
+ * @return the previous entry or NULL if iterator is at end of list
+ */
+MapEntry* getPrevTreeMapEntry(TreeMapIterator* itr) {
+	BinaryTreeNode* node = getPrevBinaryTreeNode(itr->treeItr);
+	return (node == (BinaryTreeNode*)NULL) ? (MapEntry*)NULL : &node->data->entry;
+}
+
+/**
+ * Determines whether there is a previous entry in the map.
+ *
+ * @param itr the TreeMapIterator
+ * @return true if there is a previous entry, false otherwise
+ */
+bool hasPrevTreeMapEntry(TreeMapIterator* itr) {
+	return hasPrevBinaryTreeNode(itr->treeItr);
+}
+
+/**
+ * Resets the tree map iterator to the beginning of the map.
+ *
+ * @param itr the TreeMapIterator
+ * @return true if successful, false if not supported
+ */
+bool resetTreeMapIterator(TreeMapIterator* itr) {
+	return resetBinaryTreeIterator(itr->treeItr);
+}
+
+/**
+ * Returns the number of entries returned so far.
+ *
+ * @param itr the TreeMapIterator
+ * @return the number of entries returned so far
+ */
+int getTreeMapIteratorCount(TreeMapIterator* itr) {
+	return getBinaryTreeIteratorCount(itr->treeItr);
+}
+
+/**
+ * Returns the number of entries available.
+ *
+ * @param itr the TreeMapIterator
+ * @return available number of entries or UNAVAILABLE if cannot perform operation.
+ */
+int getTreeMapIteratorAvailable(TreeMapIterator* itr) {
+	return getBinaryTreeIteratorAvailable(itr->treeItr);
+}
+

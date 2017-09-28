@@ -1,0 +1,124 @@
+/*
+ * tree_map.h
+ *
+ * This file provides the structures and function declarations of a TreeSet,
+ * which is a set that is backed by an AVL binary search tree.
+ *
+ * @since 2017-03-15
+
+ */
+
+#ifndef TREE_SET_H_
+#define TREE_SET_H_
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include "binary_search_tree.h"
+#include "tree_map.h"
+
+/**
+ * Structure that defines a TreeSet. All entries are private
+ */
+typedef struct {
+	TreeMap* map;
+} TreeSet;
+
+/**
+ * Create new empty TreeSet.
+ */
+TreeSet* createTreeSet(void);
+
+/**
+ * Frees a TreeSet.
+ *
+ * @param set the TreeSet to free
+ */
+void freeTreeSet(TreeSet* set);
+
+/**
+ * Removes all of the keys from this set.
+ *
+ * @param set the TreeSet
+ */
+void clearTreeSet(TreeSet* set);
+
+/**
+ * Adds the specified key to this set if it is not already present.
+ *
+ * @param set the TreeSet
+ * @param key the entry key to check
+ * @return true if the key was added, false otherwise
+ */
+bool addTreeSetKey(TreeSet* set, const char* key);
+
+/**
+ * Adds all keys to this set that are present in the other set.
+ *
+ * @param set the TreeSet
+ * @param otherSet the other TreeSet
+ * @return true if the set was modified as a result of this call
+ */
+bool addAllTreeSetKeys(TreeSet* set, TreeSet* otherSet);
+
+/**
+ * Returns true if this set contains the specified key.
+ *
+ * @param set the TreeSet
+ * @param key the entry key to check
+ * @return true if the set contains the key, false otherwise
+ */
+bool containsTreeSetKey(TreeSet* set, const char* key);
+
+/**
+ * Returns true if this set contains all the keys from the other set.
+ *
+ * @param set the TreeSet
+ * @param key the entry key to check
+ * @return true if the set contains all the keys, false otherwise
+ */
+bool containsAllTreeSetKeys(TreeSet* set, TreeSet* otherSet);
+
+/**
+ * Returns true if this set contains no keys.
+ *
+ * @param set the TreeSet
+ * @return true of the set is entry, false otherwise
+ */
+bool isTreeSetEmpty(TreeSet* set);
+
+/**
+ * Returns the size of the set.
+ *
+ * @param set the TreeSet
+ * @return the size of the TreeSet
+ */
+int getTreeSetSize(TreeSet* set);
+
+/**
+ * Removes the specified element from this set if it is present.
+ *
+ * @param set the TreeSet
+ * @param key the entry key to check
+ * @return true if the key was removed, false otherwise
+ */
+bool removeTreeSetKey(TreeSet* set, const char* key);
+
+/**
+ * Removes all elements from this set that are present in the other set.
+ *
+ * @param set the TreeSet
+ * @param key the entry key to check
+ * @return true if the set changed as a result of this call
+ */
+bool removeAllTreeSetKeys(TreeSet* set, TreeSet* otherSet);
+
+/**
+ * Retains only the elements in this set that are present in the other set.
+ *
+ * @param set the TreeSet
+ * @param key the entry key to check
+ * @return true if the set changed as a result of this call
+ */
+bool retainAllTreeSetKeys(TreeSet* set, TreeSet* otherSet);
+
+#endif /* TREE_SET_H_ */

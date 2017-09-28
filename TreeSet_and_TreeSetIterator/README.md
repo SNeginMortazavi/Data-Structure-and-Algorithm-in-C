@@ -1,0 +1,5 @@
+A TreeSet is a data structure that stores a collection of unique values. It is closely related to TreeMap. In fact, some data structure packages, such as Java Collections, use TreeMap to implement TreeSet. The unique values are stored in the MapEntry key field, and the MapEntry value field of all entries is given a constant, non-null "dummy" value.
+
+In this assignment, you will implement the functions for TreeSet and TreeSetIterator using TreeMap and TreeMapIterator.
+
+The code that you will use as a starting point is in the "2017SPCS5002SV/prog-assignment-6-template" repository, including header and stub implementation files for TreeSet and TreeSetIterator. You will need to add your own implemention of BinaryTreeNodeIterator from programming assignment 5, or use the instructor's version when it becomes avaible on the assignment 5 due date. The repository also contains a "tree_set_main.c" file with unit tests for TreeSet and TreeSetIterator.

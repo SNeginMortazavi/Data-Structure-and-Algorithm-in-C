@@ -1,0 +1,408 @@
+/*
+ * tree_map.h
+ *
+ * This file provides the implementations of a TreeMap, which is
+ * a Map that is backed by an AVL binary search tree.
+ *
+ * @since 2017-03-15
+ * @author philip gust
+ */
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include <strings.h>
+#include "tree_map.h"
+#include "avl_tree.h"
+#include "tree_map.h"
+#include "tree_map_iterator.h"
+
+/**
+ * Create new empty TreeMap.
+ */
+TreeMap* createTreeMap() {
+	TreeMap* map = (TreeMap*)malloc(sizeof(TreeMap));
+	map->searchTree = (BinaryTreeNode*)NULL;
+	map->size = 0;
+	return map;
+}
+
+/**
+ * Removes all of the mappings from this map.
+ */
+void clearTreeMap(TreeMap* map) {
+	freeBinaryTree(map->searchTree);
+	map->searchTree = (BinaryTreeNode*)NULL;
+	map->size = 0;
+
+}
+
+/**
+ * Frees a TreeMap.
+ *
+ * @param map the TreeMap to free
+ */
+void freeTreeMap(TreeMap* map) {
+	clearTreeMap(map);
+	free(map);
+}
+
+/**
+ * Returns true if this map contains a mapping for the specified key.
+ *
+ * @param map the TreeMap
+ * @param key the entry key to check
+ */
+bool containsTreeMapKey(TreeMap* map, const char* key) {
+	BinaryTreeNodeData data = {{key}};
+	BinaryTreeNode* node = findEqualBinarySearchTreeNode(map->searchTree, &data);
+	return (node != (BinaryTreeNode*)NULL);
+}
+
+/**
+ * Returns true if this map maps one or more keys to the specified value.
+ *
+ * @param map the TreeMap
+ * @param value the entry value to check
+ */
+bool containsTreeMapValue(TreeMap* map, MapValue* value) {
+	bool containsValue = false;
+	TreeMapIterator* itr = createTreeMapIterator(map);
+	MapEntry* entry = getNextTreeMapEntry(itr);
+	while (entry != (MapEntry*)NULL) {
+		if (compareMapValue(value, entry->value) == 0) {
+			containsValue = true;
+			break;
+		}
+		entry = getNextTreeMapEntry(itr);
+	}
+	freeTreeMapIterator(itr);
+	return containsValue;
+}
+
+/**
+ * Returns a Set view of the mappings contained in this map.
+ * NOTE: TreeMapEntrySet is a temporary implementation as a null-terminated
+ * array.
+ *
+ * @param map the TreeMap
+ * @return a MapEntrySet of the results
+ */
+MapEntrySet* getTreeMapEntrySet(TreeMap* map) {
+	// allocate storage for entry set array
+	int mapSize = getTreeMapSize(map);
+	MapEntry** entrySet = (MapEntry**)malloc((mapSize+1)*sizeof(MapEntry*));
+
+	int i = 0;
+	TreeMapIterator* itr = createTreeMapIterator(map);
+	MapEntry* entry = getNextTreeMapEntry(itr);
+	do {
+		entrySet[i++] = entry;
+		entry = getNextTreeMapEntry(itr);
+	} while (entry != (MapEntry*)NULL);
+
+	freeTreeMapIterator(itr);
+	return entrySet;
+}
+
+/**
+ * Returns the entry to which the specified key is mapped, or null if
+ * this map contains no mapping for the key.
+ *
+ * @param map the TreeMap
+ * @param key the entry key for the value to get
+ * @return the MapEntry for the given key
+ */
+MapEntry* getTreeMapEntry(TreeMap* map, const char* key) {
+	BinaryTreeNodeData data = {{key}};
+	BinaryTreeNode* node = findEqualBinarySearchTreeNode(map->searchTree, &data);
+	if (node != (BinaryTreeNode*)NULL) {
+		return &node->data->entry;
+	}
+	return (MapEntry*)NULL;
+}
+
+/**
+ * Returns the value to which the specified key is mapped, or null if
+ * this map contains no mapping for the key.
+ *
+ * @param map the TreeMap
+ * @param key the entry key for the value to get
+ * @return the value for the given key
+ */
+MapValue* getTreeMapValue(TreeMap* map, const char* key) {
+	MapEntry* entry = getTreeMapEntry(map, key);
+	return (entry == (MapEntry*)NULL) ? (MapValue*)NULL : entry->value;
+}
+
+/**
+ * Returns true if this map contains no key-value mappings.
+ *
+ * @param map the TreeMap
+ * @return true of the map is entry, false otherwise
+ */
+bool isTreeMapEmpty(TreeMap* map) {
+	return map->searchTree == (BinaryTreeNode*)NULL;
+}
+
+/**
+ * Returns a Set view of the keys contained in this map.
+ *
+ * @param map the TreeMap
+ * @return the set of key strings in the map
+ */
+StringSet* getTreeMapKeySet(TreeMap* map) {
+	// allocate key set array
+	const char** keySet = (const char**)malloc((map->size+1)*sizeof(char*));
+
+	// add keys to key set array
+	int i = 0;
+	TreeMapIterator* itr = createTreeMapIterator(map);
+	MapEntry* entry = getNextTreeMapEntry(itr);
+	while (entry != (MapEntry*)NULL) {
+		const char* key = entry->key;
+		keySet[i++] = key;
+		entry = getNextTreeMapEntry(itr);
+	}
+	freeTreeMapIterator(itr);
+
+	// terminate key set array
+	keySet[i] = (char*)NULL;
+	return keySet;
+}
+
+/**
+ * Associates the specified value with the specified key in this map
+ *
+ * @param map the TreeMap
+ * @param key the key for the value to put
+ * @param value the TreeMapValue for the key
+ * @return the previous value for the key, or NULL for a new entry
+ */
+MapValue* putTreeMapEntry(TreeMap* map, const char* key, MapValue* value) {
+	MapEntry* entry = getTreeMapEntry(map, key);
+	if (entry != (MapEntry*)NULL) {
+		// entry already exists, replace its value and return old value
+		MapValue* oldValue = entry->value;
+	    entry->value = value;
+	    return oldValue;
+	} else {
+		BinaryTreeNodeData* newData = (BinaryTreeNodeData*)malloc(sizeof(BinaryTreeNodeData));
+		newData->entry.key = key;
+		newData->entry.value = value;
+		map->searchTree = addAvlTreeNode(map->searchTree, newData);
+		map->size++;
+		return (MapValue*)NULL;
+	}
+}
+
+/**
+ * Copies all of the mappings from the specified map to this map
+ *
+ * @param map the TreeMap
+ * @param aMap another map whose entries will be added to the map
+ * @todo What happens with values for entries whose keys are duplicates.
+ */
+void putAllTreeMapEntries(TreeMap* map, TreeMap* aMap) {
+	TreeMapIterator* itr = createTreeMapIterator(aMap);
+	MapEntry* entry = getNextTreeMapEntry(itr);
+	while (entry != (MapEntry*)NULL) {
+		putTreeMapEntry(map, entry->key, entry->value);
+		entry = getNextTreeMapEntry(itr);
+	}
+	freeTreeMapIterator(itr);
+}
+
+/**
+ * Removes the mapping for a key from this map if it is present
+ *
+ * @param map the TreeMap
+ * @param key the key for the value to remove
+ * @return the value of the entry that was removed
+ */
+MapValue* removeTreeMapEntryForKey(TreeMap* map, const char* key) {
+	MapEntry* entry = getTreeMapEntry(map, key);
+	if (entry != (MapEntry*)NULL) {
+		// capture value (BinaryTreeNodeData may be destroyed on removal
+		MapValue* value = entry->value;
+		map->searchTree =
+			removeAvlTreeNode(map->searchTree, &(BinaryTreeNodeData){{key,NULL}} );
+		map->size--;
+		return value;
+	}
+	return (MapValue*)NULL;
+}
+
+/**
+ * Returns the number of key-value mappings in this map.
+ *
+ * @param map the TreeMap
+ * @return the number of entries in the map
+ */
+int getTreeMapSize(TreeMap* map) {
+	return map->size;
+}
+
+/**
+ * Returns a Collection view of the values contained in this map.
+ *
+ * @param map the TreeMap
+ *
+ * @return a collection of values in the map
+ */
+MapValueCollection* getTreeMapValues(TreeMap* map) {
+	// allocate map value collection array
+	MapValue** values = (MapValue**)malloc((map->size+1)*sizeof(MapValue*));
+
+	// add entry values to array
+	TreeMapIterator* itr = createTreeMapIterator(map);
+	int count = 0;
+	MapEntry* entry = getNextTreeMapEntry(itr);
+	while (entry != (MapEntry*)NULL) {
+		values[count++] = entry->value;
+		entry = getNextTreeMapEntry(itr);
+	}
+	freeTreeMapIterator(itr);
+
+	// terminate array
+	values[count] = (MapValue*)NULL;
+	return values;
+}
+
+
+/**
+ * Returns the key-value mapping associated with the first (least) key
+ * in this map, or null if the map is empty.
+ *
+ * @param map the TreeMap
+ * @return the entry for the first (least key) entry in the map
+ */
+//MapEntry* getFirstTreeMapEntry(TreeMap* map) {
+//
+//}
+
+/**
+ * Returns the first (least) key in this map, or null if the map is empty.
+ *
+ * @param map the TreeMap
+ * @return the first (least) key in the map
+ */
+//const char* getFirstTreeMapKey(TreeMap* map) {
+//
+//}
+
+/**
+ * Returns the key-value mapping associated with the last (greatest) key
+ * in this map, or null if the map is empty.
+ *
+ * @param map the TreeMap
+ * @return the entry for the last (greatest key) entry in the map
+ */
+//MapEntry* getLastTreeMapEntry(TreeMap* map) {
+//
+//}
+
+/**
+ * Returns the last (greatest) key in this map, or null if the map is empty.
+ *
+ * @param map the TreeMap
+ * @return the last (greatest) key in the map
+ */
+//const char* getLastTreeMapKey(TreeMap* map) {
+//
+//}
+
+/**
+ * Returns a key-value mapping associated with the greatest key less than
+ * or equal to the given key, or null if there is no such key.
+ *
+ * @param map the TreeMap
+ * @return the entry for greatest key less than or equal to given key
+ */
+//MapEntry* getTreeMapFloorEntry(TreeMap* map, const char* key) {
+//
+//}
+
+/**
+ * Returns a the greatest key less than or equal to the given key, or
+ * null if there is no such key.
+ *
+ * @param map the TreeMap
+ * @return the greatest key less than or equal to given key
+ */
+//const char* getTreeMapFloorKey(TreeMap* map, const char* key) {
+//
+//}
+
+/**
+ * Returns a view of the portion of this map whose keys are less than
+ * or equal to fromKey.
+ *
+ * @param map the TreeMap
+ * @param key the key greater or equal to the keys in the returned map
+ * @return a TreeMap whose keys are less than or equal key
+ */
+//TreeMap* getHeadTreeMap(TreeMap* map, const char* key) {
+//
+//};
+
+
+/**
+ * Returns a key-value mapping associated with the least key strictly
+ * greater than the given key, or null if there is no such key.
+ *
+ * @param map the TreeMap
+ * @param key the greatest key strictly less than the key of the returned entry
+ * @return the entry whose key is strictly greater than the given key
+ */
+//MapEntry* getHigherTreeMapEntry(TreeMap* map, char* key) {
+//
+//}
+
+/**
+ * Returns the least key strictly greater than the given key, or null
+ * if there is no such key.
+ *
+ * @param map the TreeMap
+ * @param key the greatest key strictly less than the returned key
+ * @return the key that is strictly greater than the given key
+ */
+//const char* getHigherTreeMapKey(TreeMap* map, const char* key) {
+//
+//}
+
+/**
+ * Returns a key-value mapping associated with the greatest key strictly
+ * less than the given key, or null if there is no such key.
+ *
+ * @param map the TreeMap
+ * @param key the least key strictly greater than the returned key
+ * @return the entry whose key is strictly less than the given key
+ */
+//MapEntry* getLowerTreeMapEntry(TreeMap* map, char* key) {
+//
+//}
+
+/**
+ * Returns the greatest key strictly less than the given key, or null if
+ * there is no such key.
+ *
+ * @param map the TreeMap
+ * @param key the least key strictly greater than the returned key
+ * @return the key that is strictly less than the given key
+ */
+//const char* getLowerTreeMapKey(TreeMap* map, const char* key) {
+//
+//}
+
+/**
+ * Returns a view of the portion of this map whose keys are greater than
+ * or equal to fromKey.
+ *
+ * @param map the TreeMap
+ * @param key the key less than or equal to the keys in the returned map
+ * @return a TreeMap whose keys are greater than or equal key
+ */
+//TreeMap* getTailTreeMap(TreeMap* map, const char* fromKey) {
+//
+//}
+
